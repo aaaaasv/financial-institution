@@ -3,8 +3,15 @@ from rest_framework import serializers
 
 from accounts.models import BankAccount, BalanceAction
 
+User = get_user_model()
 
-class BankAccountSerializer(serializers.HyperlinkedModelSerializer):
+
+class BankAccountSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        many=False
+    )
+
     class Meta:
         model = BankAccount
         fields = ('url', 'id', 'user', 'balance')
@@ -14,7 +21,7 @@ class BankAccountSerializer(serializers.HyperlinkedModelSerializer):
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = get_user_model()
+        model = User
         fields = ('url', 'username', 'id',)
 
         read_only_fields = ('id',)
