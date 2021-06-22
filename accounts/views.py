@@ -2,13 +2,15 @@ from django.contrib.auth import get_user_model
 from rest_framework import (
     viewsets,
     views,
+    generics
 )
 from rest_framework.response import Response
 
-from accounts.models import BankAccount
+from accounts.models import BankAccount, BalanceAction
 from accounts.serializers import (
     BankAccountSerializer,
     UserSerializer,
+    BalanceActionSerializer
 )
 from accounts.services import (
     transfer_money
@@ -36,3 +38,10 @@ class TransferApiView(views.APIView):
         transfer_amount = self.request.data.get('amount', 0)
         content, status = transfer_money(from_account_pk, to_account_pk, transfer_amount)
         return Response(content, status=status)
+
+
+class BalanceHistoryApiView(generics.ListAPIView):
+    serializer_class = BalanceActionSerializer
+
+    def get_queryset(self):
+        return BalanceAction.objects.filter(bank_account_id=self.kwargs.get('pk'))
