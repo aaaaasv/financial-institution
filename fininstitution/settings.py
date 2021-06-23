@@ -139,6 +139,8 @@ REST_FRAMEWORK = {
     ]
 }
 
+CACHE_TTL = 60 * 60
+
 sentry_sdk.init(
     dsn=os.environ.get('SENTRY_DSN'),
     integrations=[DjangoIntegration()],

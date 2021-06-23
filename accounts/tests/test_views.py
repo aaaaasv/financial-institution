@@ -3,6 +3,7 @@ import base64
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
+from django.core.cache import cache
 from rest_framework.test import APIClient
 from rest_framework import status
 
@@ -47,6 +48,7 @@ class TestBankAPIViews(TestCase):
         self.assertEqual(len(response.data), BankAccount.objects.count())
 
         BankAccount.objects.create(user=User.objects.first(), balance=2.3)
+        cache.clear()
 
         response = self.client_staffuser.get(reverse('bankaccount-list'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -54,7 +56,8 @@ class TestBankAPIViews(TestCase):
         self.assertEqual(len(response.data), BankAccount.objects.count())
 
         BankAccount.objects.create(user=User.objects.last(), balance=123.2)
-
+        cache.clear()
+        
         response = self.client_staffuser.get(reverse('bankaccount-list'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(BankAccount.objects.count(), 2)
@@ -177,6 +180,7 @@ class TestBankAPIViews(TestCase):
     def check_balance_history_length(self, bank_account_pk, history_length):
         response = self.client_staffuser.get(reverse('balance-history', kwargs={'pk': bank_account_pk}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        cache.clear()
         self.assertEqual(len(response.data), history_length)
 
     def test_get_transaction_history(self):

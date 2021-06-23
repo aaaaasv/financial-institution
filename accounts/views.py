@@ -1,4 +1,7 @@
 from django.contrib.auth import get_user_model
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.conf import settings
 from rest_framework import (
     viewsets,
     views,
@@ -24,11 +27,19 @@ class BankAccountViewSet(viewsets.ModelViewSet):
     serializer_class = BankAccountSerializer
     http_method_names = ['get', 'post', 'head']
 
+    @method_decorator(cache_page(settings.CACHE_TTL))
+    def list(self, request, *args, **kwargs):
+        return super(BankAccountViewSet, self).list(request, *args, **kwargs)
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     http_method_names = ['get', 'post', 'head']
+
+    @method_decorator(cache_page(settings.CACHE_TTL))
+    def list(self, request, *args, **kwargs):
+        return super(UserViewSet, self).list(request, *args, **kwargs)
 
 
 class TransferApiView(views.APIView):
@@ -45,3 +56,7 @@ class BalanceHistoryApiView(generics.ListAPIView):
 
     def get_queryset(self):
         return BalanceAction.objects.filter(bank_account_id=self.kwargs.get('pk'))
+
+    @method_decorator(cache_page(settings.CACHE_TTL))
+    def list(self, request, *args, **kwargs):
+        return super(BalanceHistoryApiView, self).list(request, *args, **kwargs)
