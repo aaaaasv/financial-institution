@@ -45,15 +45,14 @@ class TestBankAPIViews(TestCase):
         response = self.client_staffuser.get(reverse('bankaccount-list'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(BankAccount.objects.count(), 0)
-        self.assertEqual(len(response.data), BankAccount.objects.count())
-
+        self.assertEqual(len(response.data['results']), BankAccount.objects.count())
         BankAccount.objects.create(user=User.objects.first(), balance=2.3)
         cache.clear()
 
         response = self.client_staffuser.get(reverse('bankaccount-list'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(BankAccount.objects.count(), 1)
-        self.assertEqual(len(response.data), BankAccount.objects.count())
+        self.assertEqual(len(response.data['results']), BankAccount.objects.count())
 
         BankAccount.objects.create(user=User.objects.last(), balance=123.2)
         cache.clear()
@@ -61,7 +60,7 @@ class TestBankAPIViews(TestCase):
         response = self.client_staffuser.get(reverse('bankaccount-list'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(BankAccount.objects.count(), 2)
-        self.assertEqual(len(response.data), BankAccount.objects.count())
+        self.assertEqual(len(response.data['results']), BankAccount.objects.count())
 
     def test_get_bank_accounts_with_not_staff_forbidden(self):
         response = self.client.get(reverse('bankaccount-list'))
@@ -181,7 +180,7 @@ class TestBankAPIViews(TestCase):
         response = self.client_staffuser.get(reverse('balance-history', kwargs={'pk': bank_account_pk}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         cache.clear()
-        self.assertEqual(len(response.data), history_length)
+        self.assertEqual(len(response.data['results']), history_length)
 
     def test_get_transaction_history(self):
         user1 = User.objects.first()
