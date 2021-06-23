@@ -13,7 +13,8 @@ from accounts.models import BankAccount, BalanceAction
 from accounts.serializers import (
     BankAccountSerializer,
     UserSerializer,
-    BalanceActionSerializer
+    BalanceActionSerializer,
+    TransferSerializer
 )
 from accounts.services import (
     transfer_money
@@ -42,11 +43,17 @@ class UserViewSet(viewsets.ModelViewSet):
         return super(UserViewSet, self).list(request, *args, **kwargs)
 
 
-class TransferApiView(views.APIView):
+class TransferApiView(generics.CreateAPIView):
+    serializer_class = TransferSerializer
 
-    def post(self, request, pk, to_account_pk):
-        from_account_pk = pk
+    def post(self, request, *args, **kwargs):
+        from_account_pk = kwargs.get('pk')
         transfer_amount = self.request.data.get('amount', 0)
+        to_account_pk = self.request.data.get('transferee', None)
+        try:
+            from_account_pk, to_account_pk = int(from_account_pk), int(to_account_pk)
+        except ValueError:
+            from_account_pk, to_account_pk = None, None
         content, status = transfer_money(from_account_pk, to_account_pk, transfer_amount)
         return Response(content, status=status)
 

@@ -56,7 +56,7 @@ class TestBankAPIViews(TestCase):
 
         BankAccount.objects.create(user=User.objects.last(), balance=123.2)
         cache.clear()
-        
+
         response = self.client_staffuser.get(reverse('bankaccount-list'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(BankAccount.objects.count(), 2)
@@ -124,16 +124,16 @@ class TestBankAPIViews(TestCase):
         bank_account1 = self.create_bank_account(user1, user1_init_balance)
         bank_account2 = self.create_bank_account(user2, user2_init_balance)
 
-        amount = {'amount': 12.5}
+        transfer_data = {'amount': 12.5, 'transferee': bank_account2.pk}
         response = self.client_staffuser.post(
-            reverse('transfer', kwargs={'pk': bank_account1.pk, 'to_account_pk': bank_account2.pk}),
-            amount)
+            reverse('transfer', kwargs={'pk': bank_account1.pk}),
+            transfer_data)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         bank_account1.refresh_from_db()
         bank_account2.refresh_from_db()
-        self.assertEqual(bank_account1.balance, user1_init_balance - amount['amount'])
-        self.assertEqual(bank_account2.balance, user2_init_balance + amount['amount'])
+        self.assertEqual(bank_account1.balance, user1_init_balance - transfer_data['amount'])
+        self.assertEqual(bank_account2.balance, user2_init_balance + transfer_data['amount'])
 
     def test_transfers_between_different_user_accounts_fail_money_lack(self):
         user1 = User.objects.first()
@@ -145,10 +145,10 @@ class TestBankAPIViews(TestCase):
         bank_account1 = self.create_bank_account(user1, user1_init_balance)
         bank_account2 = self.create_bank_account(user2, user2_init_balance)
 
-        amount = {'amount': 55.5}
+        transfer_data = {'amount': 55.5, 'transferee': bank_account2.pk}
         response = self.client_staffuser.post(
-            reverse('transfer', kwargs={'pk': bank_account1.pk, 'to_account_pk': bank_account2.pk}),
-            amount)
+            reverse('transfer', kwargs={'pk': bank_account1.pk}),
+            transfer_data)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         bank_account1.refresh_from_db()
@@ -165,16 +165,16 @@ class TestBankAPIViews(TestCase):
         bank_account1 = self.create_bank_account(user1, account1_init_balance)
         bank_account2 = self.create_bank_account(user1, account2_init_balance)
 
-        amount = {'amount': 12.5}
+        transfer_data = {'amount': 12.5, 'transferee': bank_account2.pk}
         response = self.client_staffuser.post(
-            reverse('transfer', kwargs={'pk': bank_account1.pk, 'to_account_pk': bank_account2.pk}),
-            amount)
+            reverse('transfer', kwargs={'pk': bank_account1.pk}),
+            transfer_data)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         bank_account1.refresh_from_db()
         bank_account2.refresh_from_db()
-        self.assertEqual(bank_account1.balance, account1_init_balance - amount['amount'])
-        self.assertEqual(bank_account2.balance, account2_init_balance + amount['amount'])
+        self.assertEqual(bank_account1.balance, account1_init_balance - transfer_data['amount'])
+        self.assertEqual(bank_account2.balance, account2_init_balance + transfer_data['amount'])
 
     def check_balance_history_length(self, bank_account_pk, history_length):
         response = self.client_staffuser.get(reverse('balance-history', kwargs={'pk': bank_account_pk}))
@@ -193,8 +193,8 @@ class TestBankAPIViews(TestCase):
         self.assertEqual(bank_account2.balanceaction_set.count(), 0)
 
         response = self.client_staffuser.post(
-            reverse('transfer', kwargs={'pk': bank_account1.pk, 'to_account_pk': bank_account2.pk}),
-            {'amount': 1.3})
+            reverse('transfer', kwargs={'pk': bank_account1.pk}),
+            {'amount': 1.3, 'transferee': bank_account2.pk})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(bank_account1.balanceaction_set.count(), 1)
@@ -203,8 +203,8 @@ class TestBankAPIViews(TestCase):
         self.check_balance_history_length(bank_account2.pk, 1)
 
         response = self.client_staffuser.post(
-            reverse('transfer', kwargs={'pk': bank_account1.pk, 'to_account_pk': bank_account2.pk}),
-            {'amount': 1.3})
+            reverse('transfer', kwargs={'pk': bank_account1.pk}),
+            {'amount': 1.3, 'transferee': bank_account2.pk})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(bank_account1.balanceaction_set.count(), 2)

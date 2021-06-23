@@ -50,3 +50,11 @@ class BalanceActionSerializer(serializers.ModelSerializer):
     class Meta:
         model = BalanceAction
         fields = '__all__'
+
+
+class TransferSerializer(serializers.Serializer):
+    transferee = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        many=False
+    )
+    amount = serializers.DecimalField(max_digits=8, decimal_places=2)
