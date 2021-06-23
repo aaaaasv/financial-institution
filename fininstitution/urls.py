@@ -14,7 +14,8 @@ urlpatterns = [
         title="Financial Institution API",
         description="API for financial institution",
         version="1.0.0",
-        urlconf='accounts.urls'
+        urlconf='accounts.urls',
+        url='/api'
     ), name='openapi-schema'),
     path('', TemplateView.as_view(
         template_name='swagger-ui.html',
