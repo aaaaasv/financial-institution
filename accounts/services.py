@@ -18,10 +18,11 @@ def update_account_balance(account, add_amount):
 
 
 def transfer_money(from_account_pk, to_account_pk, amount):
-    from_account = BankAccount.objects.get(pk=from_account_pk)
-    to_account = BankAccount.objects.get(pk=to_account_pk)
-    if from_account == to_account:
+    if from_account_pk == to_account_pk:
         return 'You cannot transfer money between the same bank account', status.HTTP_403_FORBIDDEN
+
+    from_account = BankAccount.objects.select_related('user').get(pk=from_account_pk)
+    to_account = BankAccount.objects.select_related('user').get(pk=to_account_pk)
 
     amount = Decimal(amount)
 
