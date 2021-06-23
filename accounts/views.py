@@ -24,6 +24,13 @@ User = get_user_model()
 
 
 class BankAccountViewSet(viewsets.ModelViewSet):
+    """
+    list: Get list of all bank accounts.
+
+    retrieve: Get information about single bank account entry with it's balance.
+
+    create: Create a new bank account for the user.
+    """
     queryset = BankAccount.objects.all()
     serializer_class = BankAccountSerializer
     http_method_names = ['get', 'post', 'head']
@@ -34,6 +41,13 @@ class BankAccountViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    """
+    list: Get list of all existing users.
+
+    retrieve: Get information about specific user.
+
+    create: Create new user-customer or user-staff (available only for superusers).
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
     http_method_names = ['get', 'post', 'head']
@@ -44,6 +58,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class TransferApiView(generics.CreateAPIView):
+    """Make transfer between two users. Create transfer history entry."""
     serializer_class = TransferSerializer
 
     def post(self, request, *args, **kwargs):
@@ -59,6 +74,7 @@ class TransferApiView(generics.CreateAPIView):
 
 
 class BalanceHistoryApiView(generics.ListAPIView):
+    """Return bank transfer history for a specific user."""
     serializer_class = BalanceActionSerializer
 
     def get_queryset(self):
