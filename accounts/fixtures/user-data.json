@@ -1,0 +1,52 @@
+[
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "username": "arishabarron"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+      "username": "brandenbibson"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 3,
+    "fields": {
+      "username": "bhondachurch"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 4,
+    "fields": {
+      "username": "georginahazel"
+    }
+  },
+    {
+    "model": "auth.user",
+    "pk": 5,
+    "fields": {
+      "username": "admin",
+      "password": "pbkdf2_sha256$260000$VNt6a3rXRnFSlfVADfGqBo$ogHqBKMpann0C2xxhnmCT+VIjfl3OuLxh5MEIMQDZes=",
+      "is_superuser": true,
+      "is_staff": true,
+      "is_active": true
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 6,
+    "fields": {
+      "username": "staffuser",
+      "password": "pbkdf2_sha256$260000$VNt6a3rXRnFSlfVADfGqBo$ogHqBKMpann0C2xxhnmCT+VIjfl3OuLxh5MEIMQDZes=",
+      "is_superuser": false,
+      "is_staff": true,
+      "is_active": true
+    }
+  }
+]
