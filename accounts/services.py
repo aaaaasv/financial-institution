@@ -1,6 +1,6 @@
 from decimal import Decimal
-from django.db import transaction, connection
-from rest_framework import status
+from django.db import transaction
+from rest_framework import status, exceptions
 
 from accounts.models import (
     BankAccount,
@@ -20,7 +20,7 @@ def update_account_balance(account, add_amount):
 
 def transfer_money(from_account_pk, to_account_pk, amount):
     if from_account_pk == to_account_pk:
-        return 'You cannot transfer money between the same bank account', status.HTTP_403_FORBIDDEN
+        raise exceptions.PermissionDenied(detail='You cannot transfer money between the same bank account')
 
     from_account = BankAccount.objects.select_related('user').get(pk=from_account_pk)
     to_account = BankAccount.objects.select_related('user').get(pk=to_account_pk)
@@ -29,7 +29,7 @@ def transfer_money(from_account_pk, to_account_pk, amount):
 
     available_balance = from_account.balance
     if amount > available_balance:
-        return 'Not enough money available', status.HTTP_403_FORBIDDEN
+        raise exceptions.PermissionDenied(detail='Not enough money available')
 
     with transaction.atomic():
         new_from_balance = update_account_balance(from_account, -amount)
@@ -38,4 +38,4 @@ def transfer_money(from_account_pk, to_account_pk, amount):
         add_balance_action(from_account, f'Withdrawn {amount} for {to_account.user.username}#{to_account.id}')
         add_balance_action(to_account, f'Deposited {amount} by {from_account.user.username}#{from_account.id}')
 
-    return {'New transferer balance': new_from_balance, 'New transferee balance': new_to_balance}, status.HTTP_200_OK
+    return {'New transferer balance': new_from_balance, 'New transferee balance': new_to_balance}

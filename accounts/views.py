@@ -4,8 +4,9 @@ from django.views.decorators.cache import cache_page
 from django.conf import settings
 from rest_framework import (
     viewsets,
-    views,
-    generics
+    generics,
+    exceptions,
+    status
 )
 from rest_framework.response import Response
 
@@ -65,12 +66,18 @@ class TransferApiView(generics.CreateAPIView):
         from_account_pk = kwargs.get('pk')
         transfer_amount = self.request.data.get('amount', 0)
         to_account_pk = self.request.data.get('transferee', None)
+
         try:
             from_account_pk, to_account_pk = int(from_account_pk), int(to_account_pk)
         except ValueError:
-            from_account_pk, to_account_pk = None, None
-        content, status = transfer_money(from_account_pk, to_account_pk, transfer_amount)
-        return Response(content, status=status)
+            return Response('You have to provide id values of user\'s bank account', status.HTTP_400_BAD_REQUEST)
+
+        try:
+            content = transfer_money(from_account_pk, to_account_pk, transfer_amount)
+        except exceptions.PermissionDenied as e:
+            return Response(e.detail, e.status_code)
+
+        return Response(content, status=status.HTTP_200_OK)
 
 
 class BalanceHistoryApiView(generics.ListAPIView):
