@@ -211,3 +211,71 @@ class TestBankAPIViews(TestCase):
         self.check_balance_history_length(bank_account1.pk, 2)
         self.assertEqual(bank_account2.balanceaction_set.count(), 2)
         self.check_balance_history_length(bank_account2.pk, 2)
+
+
+class TestAuth(TestCase):
+    fixtures = ['user-data.json']
+
+    def setUp(self):
+        self.client = APIClient()
+
+    @staticmethod
+    def get_user_data(username):
+        password = '12345pass_'
+        user = User.objects.get(username=username)
+        user.set_password(password)
+        user.save()
+        return {'username': username, 'password': password}
+
+    def obtain_jwt_token(self, username):
+        user_data = self.get_user_data(username)
+        response = self.client.post(reverse('token_obtain_pair'), user_data)
+        return response
+
+    def test_jwt_obtain_token_success(self):
+        response = self.obtain_jwt_token('admin')
+        self.assertIn('refresh', response.data)
+        self.assertIn('access', response.data)
+        response = self.client.post(reverse('token_verify'), {'token': response.data['access']})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_jwt_obtain_token_fail_wrong_password(self):
+        wrong_user_data = {
+            'username': 'admin',
+            'password': 'somewrongpassword'
+        }
+        response = self.client.post(reverse('token_obtain_pair'), wrong_user_data)
+        self.assertNotIn('refresh', response.data)
+        self.assertNotIn('access', response.data)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_jwt_token_use_by_superuser(self):
+        token = self.obtain_jwt_token('admin').data['access']
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + token)
+
+        user_data = {
+            'username': 'newteststaffuser',
+            'password': '12345ab',
+            'is_staff': 'true'
+        }
+
+        self.assertFalse(User.objects.filter(username=user_data['username']).exists())
+        response = self.client.post(reverse('user-list'), user_data)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(User.objects.filter(username=user_data['username']).exists())
+
+    def test_jwt_token_use_by_customer(self):
+        token = self.obtain_jwt_token('arishabarron').data['access']
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + token)
+
+        user_data = {
+            'username': 'newteststaffuser',
+            'password': '12345ab',
+        }
+
+        self.assertFalse(User.objects.filter(username=user_data['username']).exists())
+        response = self.client.post(reverse('user-list'), user_data)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertFalse(User.objects.filter(username=user_data['username']).exists())
