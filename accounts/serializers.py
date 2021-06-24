@@ -22,11 +22,14 @@ class BankAccountSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
-        fields = ('url', 'username', 'id', 'password', 'is_staff')
+        fields = ('url', 'username', 'id', 'password', 'is_staff', 'first_name', 'last_name', 'email')
         read_only_fields = ('id',)
         extra_kwargs = {
             'password': {'write_only': True},
-            'is_staff': {'write_only': True}
+            'is_staff': {
+                'write_only': True,
+                'help_text': ''
+            }
         }
 
     def create(self, validated_data):
@@ -39,6 +42,9 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             is_staff = validated_data.get('is_staff', False)
         user = User.objects.create(
             username=validated_data['username'],
+            email=validated_data.get('email', ''),
+            first_name=validated_data.get('first_name', ''),
+            last_name=validated_data.get('last_name', ''),
             is_staff=is_staff
         )
         user.set_password(validated_data['password'])
